@@ -24,3 +24,8 @@
   background-color: #000;
   color: #fff;
 }
+
+.buttonHeader {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}

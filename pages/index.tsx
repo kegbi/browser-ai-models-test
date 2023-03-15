@@ -101,6 +101,7 @@ export default function Home() {
   // TODO: extract to hook or other func to reduce lines of code in the main component
   async function loadModel() {
     try {
+      setError(null);
       setLoading("Loading model...");
       setLoadedModelInfo(null);
       const model = await InferenceSession.create(selectedModel.modelUrl, {
@@ -164,22 +165,27 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
+        <h2 className={styles.buttonHeader}>Provider:</h2>
         <ButtonSelector
           selectedValue={modelType}
           setSelectHandler={setModelTypeHandler}
           options={modelTypeOptions}
         />
+        <h2 className={styles.buttonHeader}>Precision:</h2>
         <ButtonSelector
           selectedValue={precision}
           setSelectHandler={setPrecisionHandler}
           options={precisionTypeOptions}
         />
         {modelType === ModelType.ONNX && (
-          <ButtonSelector
-            selectedValue={executionProvider[0]}
-            setSelectHandler={setExecutionProvidersHandler}
-            options={executionProvidersOptions}
-          />
+          <>
+            <h2 className={styles.buttonHeader}>Engine:</h2>
+            <ButtonSelector
+              selectedValue={executionProvider[0]}
+              setSelectHandler={setExecutionProvidersHandler}
+              options={executionProvidersOptions}
+            />
+          </>
         )}
 
         {loading ? (
@@ -205,7 +211,6 @@ export default function Home() {
         </button>
 
         {error && <div style={{ color: "red" }}>{error}</div>}
-        {/*<YoloModel imageUrl={}*/}
       </main>
     </>
   );

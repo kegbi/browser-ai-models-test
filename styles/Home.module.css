@@ -2,11 +2,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6rem;
+  padding: 6rem 6rem 0 6rem;
   min-height: 100vh;
 }
 
-.loadModelButton {
+.button {
   margin: 2rem 0;
   width: 100%;
   max-width: 300px;
@@ -28,4 +28,12 @@
 .buttonHeader {
   font-size: 1.5rem;
   margin-bottom: 1rem;
+}
+
+.imageCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }

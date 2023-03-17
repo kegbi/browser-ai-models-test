@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { InferenceSession, Tensor } from "onnxruntime-web";
@@ -13,6 +13,8 @@ import { OnnxModelSelector } from "@/components/OnnxModelSelector/OnnxModelSelec
 import { TensorflowJsModelSelector } from "@/components/TensorflowJsModelSelector/TensorflowJsModelSelector";
 import { ButtonSelector } from "@/components/ButtonSelector/ButtonSelector";
 import { getFilteredModelList } from "@/utils/getFilteredModelList";
+import { YoloSession } from "@/utils/utils-yolo/types";
+import { detectImage } from "@/utils/utils-yolo/detect";
 
 // const imageUrls = YOLO_IMAGE_URLS;
 
@@ -37,11 +39,6 @@ const executionProvidersOptions: ExecutionProviders[] = [
   ExecutionProviders.WEBGL,
 ];
 
-interface SessionData {
-  model: InferenceSession;
-  nms: InferenceSession;
-}
-
 export default function Home() {
   const [modelType, setModelType] = useState<ModelType>(ModelType.ONNX);
   const [precision, setPrecision] = useState<PRECISION>(PRECISION.FP32);
@@ -52,13 +49,18 @@ export default function Home() {
     null
   );
   const [loading, setLoading] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [sessionData, setSessionData] = useState<SessionData | null>(null);
+  const [sessionData, setSessionData] = useState<YoloSession | null>(null);
   const [executionProvider, setExecutionProvider] = useState<
     ExecutionProviders[]
   >([ExecutionProviders.WASM]);
   const [modelList, setModelList] =
     useState<Record<string, ModelData>>(modelListMock);
+
+  const inputImage = useRef(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const canvasRef = useRef(null);
 
   function setSelectedModelHandler(
     event: React.ChangeEvent<HTMLSelectElement>
@@ -96,6 +98,21 @@ export default function Home() {
   function resetFlags() {
     setLoading(null);
     setError(null);
+  }
+
+  function loadTestLocalImage() {
+    if (image) {
+      URL.revokeObjectURL(image);
+      setImage(null);
+    }
+
+    const tempImageUrl =
+      "/pictures_examples/Alpine_School_District_school_bus.jpg";
+
+    if (imageRef.current) {
+      imageRef.current.src = tempImageUrl;
+      setImage(tempImageUrl);
+    }
   }
 
   // TODO: extract to hook or other func to reduce lines of code in the main component
@@ -206,8 +223,87 @@ export default function Home() {
           />
         )}
 
-        <button className={styles.loadModelButton} onClick={() => loadModel()}>
+        <button className={styles.button} onClick={() => loadModel()}>
           Load model
+        </button>
+
+        <h2 className={styles.buttonHeader}>Image testing:</h2>
+
+        <div style={{ position: "relative" }}>
+          <img
+            ref={imageRef}
+            src="#"
+            alt=""
+            style={{ display: image ? "block" : "none" }}
+            onLoad={() => {
+              detectImage(imageRef.current, canvasRef.current, sessionData, {
+                topk,
+                iouThreshold,
+                confThreshold,
+                classThreshold,
+                inputShape: modelInputShape,
+              });
+            }}
+          />
+          <canvas
+            id="canvas"
+            className={styles.imageCanvas}
+            width={modelInputShape[2]}
+            height={modelInputShape[3]}
+            style={{ display: image ? "block" : "none" }}
+            ref={canvasRef}
+          />
+        </div>
+
+        <input
+          type="file"
+          ref={inputImage}
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            // handle next image to detect
+            if (image) {
+              URL.revokeObjectURL(image);
+              setImage(null);
+            }
+
+            if (!e.target.files || !e.target.files[0] || !imageRef.current)
+              return;
+
+            const url = URL.createObjectURL(e.target.files[0]); // create image url
+            imageRef.current.src = url; // set image source
+            setImage(url);
+          }}
+        />
+        <button
+          className={styles.button}
+          onClick={() => {
+            if (inputImage?.current) {
+              // @ts-ignore
+              inputImage.current?.click();
+            }
+          }}
+        >
+          Open local image
+        </button>
+        {image && (
+          /* show close btn when there is image */
+          <button
+            className={styles.button}
+            onClick={() => {
+              if (!inputImage.current || !imageRef.current) return;
+              // @ts-ignore
+              inputImage.current.value = "";
+              imageRef.current.src = "#";
+              URL.revokeObjectURL(image);
+              setImage(null);
+            }}
+          >
+            Close image
+          </button>
+        )}
+        <button className={styles.button} onClick={() => loadTestLocalImage()}>
+          Load test Image
         </button>
 
         {error && <div style={{ color: "red" }}>{error}</div>}

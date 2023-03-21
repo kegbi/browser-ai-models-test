@@ -1,33 +1,29 @@
 import React from "react";
 import styles from "@/components/ButtonSelector/ButtonSelector.module.css";
 import cn from "classnames";
-import { ExecutionProviders } from "@/components/SelectorComponent/types";
+import { ButtonSelectorButtonConfig } from "@/components/ButtonSelector/types";
 
 interface ButtonSelectorProps {
   selectedValue: string;
-  setSelectHandler: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => void;
-  options: string[];
+  buttonsConfig: ButtonSelectorButtonConfig[];
 }
 
 export function ButtonSelector({
   selectedValue,
-  setSelectHandler,
-  options,
+  buttonsConfig,
 }: ButtonSelectorProps) {
   return (
     <div className={styles.buttonGroup}>
-      {options.map((option) => (
+      {buttonsConfig.map((option) => (
         <button
-          key={option}
-          onClick={(event) => setSelectHandler(event)}
-          value={option}
+          key={option.value}
+          onClick={(event) => option.action(event)}
+          value={option.value}
           className={cn(styles.button, {
-            [styles.selectedButton]: option === selectedValue,
+            [styles.selectedButton]: option.value === selectedValue,
           })}
         >
-          {option}
+          {option.label}
         </button>
       ))}
     </div>

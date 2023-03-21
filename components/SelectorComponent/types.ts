@@ -30,13 +30,6 @@ export const modelListMock: Record<string, ModelData> = {
     precision: PRECISION.FP32,
     type: ModelType.ONNX,
   },
-  yolov432: {
-    name: "YOLOv4 32fp",
-    value: "yolov432",
-    modelUrl: "/models/yolov4.onnx",
-    precision: PRECISION.FP32,
-    type: ModelType.ONNX,
-  },
   yolov5s16: {
     name: "YOLOv5s 16fp",
     value: "yolov5s16",

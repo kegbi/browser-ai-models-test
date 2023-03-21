@@ -8,25 +8,25 @@ import { ModelPicker } from "@/components/ModelPicker/ModelPicker";
 
 interface TensorflowJsModelSelectorProps {
   selectedModel: ModelData | null;
-  loadedModelInfo: ModelData | null;
   setSelectedModelHandler: (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => void;
   modelList: Record<string, ModelData>;
+  loadModelHandler: () => Promise<void>;
 }
 
 export function TensorflowJsModelSelector({
   selectedModel,
-  loadedModelInfo,
   setSelectedModelHandler,
   modelList,
+  loadModelHandler,
 }: TensorflowJsModelSelectorProps) {
   return (
     <ModelPicker
       selectedModel={selectedModel}
-      loadedModelInfo={loadedModelInfo}
       setSelectedModelHandler={setSelectedModelHandler}
       modelList={modelList}
+      loadModelHandler={loadModelHandler}
     />
   );
 }

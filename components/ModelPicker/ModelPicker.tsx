@@ -3,21 +3,22 @@ import { ModelData } from "@/components/SelectorComponent/types";
 import { SelectorComponent } from "@/components/SelectorComponent/SelectorComponent";
 import { ModelOptions } from "@/components/SelectorComponent/components/ModelOptions/ModelOptions";
 import styles from "@/components/ModelPicker/ModelPicker.module.css";
+import homeStyles from "@/styles/Home.module.css";
 
 interface ModelPickerProps {
   selectedModel: ModelData | null;
-  loadedModelInfo: ModelData | null;
   setSelectedModelHandler: (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => void;
   modelList: Record<string, ModelData>;
+  loadModelHandler: () => Promise<void>;
 }
 
 export function ModelPicker({
   selectedModel,
-  loadedModelInfo,
   setSelectedModelHandler,
   modelList,
+  loadModelHandler,
 }: ModelPickerProps) {
   if (selectedModel && modelList) {
     return (
@@ -34,13 +35,12 @@ export function ModelPicker({
           {selectedModel.precision}
           {selectedModel.type ? `, Provider: ${selectedModel.type}` : ""})
         </p>
-        {loadedModelInfo && (
-          <p className={styles.modelInformation}>
-            Loaded model: {loadedModelInfo.name} (Precision:{" "}
-            {loadedModelInfo.precision}
-            {loadedModelInfo.type ? `, Provider: ${loadedModelInfo.type}` : ""})
-          </p>
-        )}
+        <button
+          className={homeStyles.button}
+          onClick={() => loadModelHandler()}
+        >
+          Load model
+        </button>
       </>
     );
   } else {

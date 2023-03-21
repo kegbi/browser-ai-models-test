@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { InferenceSession, Tensor } from "onnxruntime-web";
@@ -14,30 +14,22 @@ import { TensorflowJsModelSelector } from "@/components/TensorflowJsModelSelecto
 import { ButtonSelector } from "@/components/ButtonSelector/ButtonSelector";
 import { getFilteredModelList } from "@/utils/getFilteredModelList";
 import { YoloSession } from "@/utils/utils-yolo/types";
-import { detectImage } from "@/utils/utils-yolo/detect";
+import {
+  getExecutionProvidersButtonsConfig,
+  getModelTypesButtonsConfig,
+  getPrecisionButtonsConfig,
+} from "@/components/ButtonSelector/utils/configFactory";
+import { YoloImageDisplay } from "@/components/YoloImageDisplay/YoloImageDisplay";
 
 // const imageUrls = YOLO_IMAGE_URLS;
 
 const nmsModelName = "nms-yolov5.onnx";
 
-const modelInputShape = [1, 3, 640, 640];
+const modelInputShape: [number, number, number, number] = [1, 3, 640, 640];
 const topk = 100;
 const iouThreshold = 0.45;
 const confThreshold = 0.2;
 const classThreshold = 0.2;
-
-const modelTypeOptions: ModelType[] = [ModelType.ONNX, ModelType.TENSORFLOWJS];
-
-const precisionTypeOptions: PRECISION[] = [
-  PRECISION.FP32,
-  PRECISION.FP16,
-  PRECISION.INT8,
-];
-
-const executionProvidersOptions: ExecutionProviders[] = [
-  ExecutionProviders.WASM,
-  ExecutionProviders.WEBGL,
-];
 
 export default function Home() {
   const [modelType, setModelType] = useState<ModelType>(ModelType.ONNX);
@@ -45,11 +37,11 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState<ModelData>(
     modelListMock.yolov5s32
   );
+
   const [loadedModelInfo, setLoadedModelInfo] = useState<ModelData | null>(
     null
   );
   const [loading, setLoading] = useState<string | null>(null);
-  const [image, setImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<YoloSession | null>(null);
   const [executionProvider, setExecutionProvider] = useState<
@@ -58,9 +50,15 @@ export default function Home() {
   const [modelList, setModelList] =
     useState<Record<string, ModelData>>(modelListMock);
 
-  const inputImage = useRef(null);
-  const imageRef = useRef<HTMLImageElement | null>(null);
-  const canvasRef = useRef(null);
+  const modelTypeButtonsConfig =
+    getModelTypesButtonsConfig(setModelTypeHandler);
+
+  const precisionTypeButtonsConfig =
+    getPrecisionButtonsConfig(setPrecisionHandler);
+
+  const executionProvidersButtonsConfig = getExecutionProvidersButtonsConfig(
+    setExecutionProvidersHandler
+  );
 
   function setSelectedModelHandler(
     event: React.ChangeEvent<HTMLSelectElement>
@@ -98,21 +96,6 @@ export default function Home() {
   function resetFlags() {
     setLoading(null);
     setError(null);
-  }
-
-  function loadTestLocalImage() {
-    if (image) {
-      URL.revokeObjectURL(image);
-      setImage(null);
-    }
-
-    const tempImageUrl =
-      "/pictures_examples/Alpine_School_District_school_bus.jpg";
-
-    if (imageRef.current) {
-      imageRef.current.src = tempImageUrl;
-      setImage(tempImageUrl);
-    }
   }
 
   // TODO: extract to hook or other func to reduce lines of code in the main component
@@ -185,22 +168,19 @@ export default function Home() {
         <h2 className={styles.buttonHeader}>Provider:</h2>
         <ButtonSelector
           selectedValue={modelType}
-          setSelectHandler={setModelTypeHandler}
-          options={modelTypeOptions}
+          buttonsConfig={modelTypeButtonsConfig}
         />
         <h2 className={styles.buttonHeader}>Precision:</h2>
         <ButtonSelector
           selectedValue={precision}
-          setSelectHandler={setPrecisionHandler}
-          options={precisionTypeOptions}
+          buttonsConfig={precisionTypeButtonsConfig}
         />
         {modelType === ModelType.ONNX && (
           <>
             <h2 className={styles.buttonHeader}>Engine:</h2>
             <ButtonSelector
               selectedValue={executionProvider[0]}
-              setSelectHandler={setExecutionProvidersHandler}
-              options={executionProvidersOptions}
+              buttonsConfig={executionProvidersButtonsConfig}
             />
           </>
         )}
@@ -210,101 +190,39 @@ export default function Home() {
         ) : modelType === ModelType.ONNX ? (
           <OnnxModelSelector
             selectedModel={selectedModel}
-            loadedModelInfo={loadedModelInfo}
             setSelectedModelHandler={setSelectedModelHandler}
             modelList={modelList}
+            loadModelHandler={loadModel}
           />
         ) : (
           <TensorflowJsModelSelector
             selectedModel={selectedModel}
-            loadedModelInfo={loadedModelInfo}
             setSelectedModelHandler={setSelectedModelHandler}
             modelList={modelList}
+            loadModelHandler={loadModel}
           />
         )}
 
-        <button className={styles.button} onClick={() => loadModel()}>
-          Load model
-        </button>
-
-        <h2 className={styles.buttonHeader}>Image testing:</h2>
-
-        <div style={{ position: "relative" }}>
-          <img
-            ref={imageRef}
-            src="#"
-            alt=""
-            style={{ display: image ? "block" : "none" }}
-            onLoad={() => {
-              detectImage(imageRef.current, canvasRef.current, sessionData, {
-                topk,
-                iouThreshold,
-                confThreshold,
-                classThreshold,
-                inputShape: modelInputShape,
-              });
-            }}
-          />
-          <canvas
-            id="canvas"
-            className={styles.imageCanvas}
-            width={modelInputShape[2]}
-            height={modelInputShape[3]}
-            style={{ display: image ? "block" : "none" }}
-            ref={canvasRef}
-          />
-        </div>
-
-        <input
-          type="file"
-          ref={inputImage}
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={(e) => {
-            // handle next image to detect
-            if (image) {
-              URL.revokeObjectURL(image);
-              setImage(null);
-            }
-
-            if (!e.target.files || !e.target.files[0] || !imageRef.current)
-              return;
-
-            const url = URL.createObjectURL(e.target.files[0]); // create image url
-            imageRef.current.src = url; // set image source
-            setImage(url);
-          }}
-        />
-        <button
-          className={styles.button}
-          onClick={() => {
-            if (inputImage?.current) {
-              // @ts-ignore
-              inputImage.current?.click();
-            }
-          }}
-        >
-          Open local image
-        </button>
-        {image && (
-          /* show close btn when there is image */
-          <button
-            className={styles.button}
-            onClick={() => {
-              if (!inputImage.current || !imageRef.current) return;
-              // @ts-ignore
-              inputImage.current.value = "";
-              imageRef.current.src = "#";
-              URL.revokeObjectURL(image);
-              setImage(null);
-            }}
-          >
-            Close image
-          </button>
+        {loadedModelInfo && sessionData && (
+          <>
+            <p className={styles.modelInformation}>
+              Loaded model: {loadedModelInfo.name} (Precision:{" "}
+              {loadedModelInfo.precision}
+              {loadedModelInfo.type
+                ? `, Provider: ${loadedModelInfo.type}`
+                : ""}
+              )
+            </p>
+            <YoloImageDisplay
+              sessionData={sessionData}
+              modelInputShape={modelInputShape}
+              topk={topk}
+              iouThreshold={iouThreshold}
+              confThreshold={confThreshold}
+              classThreshold={classThreshold}
+            />
+          </>
         )}
-        <button className={styles.button} onClick={() => loadTestLocalImage()}>
-          Load test Image
-        </button>
 
         {error && <div style={{ color: "red" }}>{error}</div>}
       </main>

@@ -2,14 +2,17 @@ import { ButtonSelectorButtonConfig } from "@/components/ButtonSelector/types";
 import React from "react";
 import {
   ExecutionProviders,
+  modelListMock,
   ModelType,
   PRECISION,
 } from "@/components/SelectorComponent/types";
-import { featureConfig } from "@/configs/config";
+import { getFeatureConfig } from "@/configs/config";
 
 type ButtonHandler = (
   event: React.MouseEvent<HTMLButtonElement, MouseEvent>
 ) => void;
+
+const featureConfig = getFeatureConfig(modelListMock);
 
 export function getModelTypesButtonsConfig(
   handler: ButtonHandler

@@ -1,8 +1,13 @@
 import {
   ExecutionProviders,
+  ModelData,
   ModelType,
   PRECISION,
 } from "@/components/SelectorComponent/types";
+import { isCertainModelTypePresented } from "@/configs/utils/modelTypes/isCertainModelTypePresented";
+import { getDefaultModelType } from "@/configs/utils/modelTypes/getDefaultModelType";
+import { isCertainPrecisionLevelPresented } from "@/configs/utils/precision/isCertainPrecisionLevelPresented";
+import { getDefaultPrecisionLevel } from "@/configs/utils/precision/getDefaultPrecisionLevel";
 
 type ButtonInterface = {
   isDisabled: boolean;
@@ -29,48 +34,63 @@ interface FeatureConfig {
 }
 
 // TODO: env vars solution
-export const featureConfig: FeatureConfig = {
-  buttons: {
-    modelTypes: {
-      [ModelType.ONNX]: {
-        isDisabled: false,
-        isHidden: true,
-        isDefault: true,
+export function getFeatureConfig(
+  modelList: Record<string, ModelData>
+): FeatureConfig {
+  const defaultModelType = getDefaultModelType(modelList);
+
+  return {
+    buttons: {
+      modelTypes: {
+        [ModelType.ONNX]: {
+          isDisabled: false,
+          isHidden: !isCertainModelTypePresented(modelList, ModelType.ONNX),
+          isDefault: defaultModelType === ModelType.ONNX,
+        },
+        [ModelType.TENSORFLOWJS]: {
+          isDisabled: true,
+          isHidden: !isCertainModelTypePresented(
+            modelList,
+            ModelType.TENSORFLOWJS
+          ),
+          isDefault: defaultModelType === ModelType.TENSORFLOWJS,
+        },
       },
-      [ModelType.TENSORFLOWJS]: {
-        isDisabled: true,
-        isHidden: true,
-        isDefault: false,
+      precision: {
+        [PRECISION.FP32]: {
+          isDisabled: false,
+          isHidden: !isCertainPrecisionLevelPresented(
+            modelList,
+            PRECISION.FP32
+          ),
+          isDefault: getDefaultPrecisionLevel(modelList) === PRECISION.FP32,
+        },
+        [PRECISION.FP16]: {
+          isDisabled: true,
+          isHidden: isCertainPrecisionLevelPresented(modelList, PRECISION.FP16),
+          isDefault: getDefaultPrecisionLevel(modelList) === PRECISION.FP16,
+        },
+        [PRECISION.INT8]: {
+          isDisabled: true,
+          isHidden: !isCertainPrecisionLevelPresented(
+            modelList,
+            PRECISION.INT8
+          ),
+          isDefault: getDefaultPrecisionLevel(modelList) === PRECISION.INT8,
+        },
+      },
+      executionProviders: {
+        [ExecutionProviders.WASM]: {
+          isDisabled: false,
+          isHidden: false,
+          isDefault: true,
+        },
+        [ExecutionProviders.WEBGL]: {
+          isDisabled: false,
+          isHidden: false,
+          isDefault: false,
+        },
       },
     },
-    precision: {
-      [PRECISION.FP32]: {
-        isDisabled: false,
-        isHidden: false,
-        isDefault: true,
-      },
-      [PRECISION.FP16]: {
-        isDisabled: true,
-        isHidden: true,
-        isDefault: false,
-      },
-      [PRECISION.INT8]: {
-        isDisabled: true,
-        isHidden: true,
-        isDefault: false,
-      },
-    },
-    executionProviders: {
-      [ExecutionProviders.WASM]: {
-        isDisabled: false,
-        isHidden: false,
-        isDefault: true,
-      },
-      [ExecutionProviders.WEBGL]: {
-        isDisabled: true,
-        isHidden: true,
-        isDefault: false,
-      },
-    },
-  },
-};
+  };
+}

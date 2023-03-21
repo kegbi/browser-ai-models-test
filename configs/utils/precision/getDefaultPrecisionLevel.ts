@@ -8,5 +8,7 @@ export function getDefaultPrecisionLevel(modelList: Record<string, ModelData>) {
     return PRECISION.FP16;
   } else if (isCertainPrecisionLevelPresented(modelList, PRECISION.INT8)) {
     return PRECISION.INT8;
+  } else {
+    return PRECISION.FP32;
   }
 }

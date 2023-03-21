@@ -20,6 +20,8 @@ import {
   getPrecisionButtonsConfig,
 } from "@/components/ButtonSelector/utils/configFactory";
 import { YoloImageDisplay } from "@/components/YoloImageDisplay/YoloImageDisplay";
+import { getDefaultModelType } from "@/configs/utils/modelTypes/getDefaultModelType";
+import { getDefaultPrecisionLevel } from "@/configs/utils/precision/getDefaultPrecisionLevel";
 
 // const imageUrls = YOLO_IMAGE_URLS;
 
@@ -32,8 +34,12 @@ const confThreshold = 0.2;
 const classThreshold = 0.2;
 
 export default function Home() {
-  const [modelType, setModelType] = useState<ModelType>(ModelType.ONNX);
-  const [precision, setPrecision] = useState<PRECISION>(PRECISION.FP32);
+  const [modelType, setModelType] = useState<ModelType>(
+    getDefaultModelType(modelListMock)
+  );
+  const [precision, setPrecision] = useState<PRECISION>(
+    getDefaultPrecisionLevel(modelListMock)
+  );
   const [selectedModel, setSelectedModel] = useState<ModelData>(
     modelListMock.yolov5s32
   );

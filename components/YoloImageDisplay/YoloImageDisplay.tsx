@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { YoloSession } from "@/utils/utils-yolo/types";
 import { detectImage } from "@/utils/utils-yolo/detect";
 import styles from "@/styles/Home.module.css";
+import { cropImageFromFile } from "@/utils/imageTransform/imageTransformUtils";
 
 interface YoloImageDisplayProps {
   sessionData: YoloSession;
@@ -56,7 +57,9 @@ export function YoloImageDisplay({
 
   return (
     <>
-      <h2 className={styles.buttonHeader}>Image testing:</h2>
+      <h2 className={styles.buttonHeader} style={{ marginTop: "2rem" }}>
+        Image testing:
+      </h2>
       <div style={{ position: "relative" }}>
         <img
           ref={imageRef}
@@ -88,7 +91,7 @@ export function YoloImageDisplay({
         ref={inputImage}
         accept="image/*"
         style={{ display: "none" }}
-        onChange={(e) => {
+        onChange={async (e) => {
           // handle next image to detect
           if (image) {
             URL.revokeObjectURL(image);
@@ -98,7 +101,13 @@ export function YoloImageDisplay({
           if (!e.target.files || !e.target.files[0] || !imageRef?.current)
             return;
 
-          const url = URL.createObjectURL(e.target.files[0]); // create image url
+          const croppedImage = await cropImageFromFile(
+            e.target.files[0],
+            modelInputShape[2],
+            modelInputShape[3]
+          );
+
+          const url = URL.createObjectURL(croppedImage); // create image url
           imageRef.current.src = url; // set image source
           setImageHandler(url);
         }}

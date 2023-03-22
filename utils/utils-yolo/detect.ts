@@ -99,10 +99,15 @@ export const detectImage = async (
           Math.floor((y - 0.5 * h) * yRatio), //top
           Math.floor(w * xRatio), // width
           Math.floor(h * yRatio), // height
-        ] as [number, number, number, number],
+        ].map((num) => {
+          if (num < 0) return 0;
+          return num;
+        }) as [number, number, number, number],
         totalCalculateTime: totalCalculateTime,
       });
   }
+
+  console.log(boxes)
 
   renderBoxes(canvas, boxes);
 

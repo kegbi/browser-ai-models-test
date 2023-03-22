@@ -23,8 +23,6 @@ import { YoloImageDisplay } from "@/components/YoloImageDisplay/YoloImageDisplay
 import { getDefaultModelType } from "@/configs/utils/modelTypes/getDefaultModelType";
 import { getDefaultPrecisionLevel } from "@/configs/utils/precision/getDefaultPrecisionLevel";
 
-// const imageUrls = YOLO_IMAGE_URLS;
-
 const nmsModelName = "nms-yolov5.onnx";
 
 const modelInputShape: [number, number, number, number] = [1, 3, 640, 640];

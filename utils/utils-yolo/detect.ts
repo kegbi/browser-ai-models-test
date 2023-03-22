@@ -107,8 +107,6 @@ export const detectImage = async (
       });
   }
 
-  console.log(boxes)
-
   renderBoxes(canvas, boxes);
 
   // release mat opencv
